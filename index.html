@@ -41,16 +41,109 @@
     }
     .header {
       border-bottom: 3px double #1e3a5f;
-      padding-bottom: 14px;
-      margin-bottom: 18px;
+      padding-bottom: 12px;
+      margin-bottom: 14px;
     }
     .header h1 {
-      margin: 0 0 10px;
+      margin: 0;
       font-size: clamp(1.35rem, 2.8vw, 1.85rem);
       font-weight: 900;
       color: var(--primary);
       text-align: center;
       letter-spacing: 0.03em;
+    }
+    .footer-bar {
+      margin-top: 24px;
+      padding-top: 18px;
+      border-top: 3px double #1e3a5f;
+    }
+    .btn-celebrate {
+      background: #b45309;
+      border-color: #b45309;
+      color: #ffffff;
+    }
+    .btn-celebrate:hover {
+      background: #92400e;
+      border-color: #92400e;
+    }
+    #fireworksCanvas {
+      position: fixed;
+      inset: 0;
+      width: 100vw;
+      height: 100vh;
+      pointer-events: none;
+      z-index: 1200;
+      display: none;
+    }
+    .celebrate-overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(15, 23, 42, 0.58);
+      display: none;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+      z-index: 1100;
+    }
+    .celebrate-overlay.show {
+      display: flex;
+    }
+    .celebrate-card {
+      background: #ffffff;
+      border: 3px solid #f59e0b;
+      border-radius: 16px;
+      max-width: 560px;
+      width: 100%;
+      padding: 28px 28px 24px;
+      text-align: center;
+      box-shadow: 0 20px 50px rgba(0, 0, 0, 0.3);
+      position: relative;
+      animation: popIn 0.35s cubic-bezier(0.22, 1, 0.36, 1);
+    }
+    @keyframes popIn {
+      from { transform: scale(0.86); opacity: 0; }
+      to { transform: scale(1); opacity: 1; }
+    }
+    .celebrate-badge {
+      display: inline-block;
+      background: linear-gradient(135deg, #fef3c7, #fde68a);
+      color: #92400e;
+      border: 2px solid #f59e0b;
+      border-radius: 999px;
+      padding: 6px 20px;
+      font-size: 1.05rem;
+      font-weight: 800;
+      margin-bottom: 10px;
+    }
+    .celebrate-score {
+      font-size: clamp(2.8rem, 7vw, 4rem);
+      font-weight: 900;
+      color: #15803d;
+      line-height: 1.1;
+      margin: 6px 0;
+    }
+    .celebrate-score span {
+      font-size: 1.4rem;
+      color: #374151;
+      font-weight: 700;
+    }
+    .celebrate-title {
+      font-size: 1.45rem;
+      font-weight: 900;
+      color: #1e3a5f;
+      margin: 8px 0 10px;
+    }
+    .celebrate-msg {
+      font-size: 1.12rem;
+      color: #374151;
+      line-height: 1.65;
+      margin: 0 0 20px;
+    }
+    .celebrate-actions {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      justify-content: center;
     }
     .toolbar {
       display: flex;
@@ -213,19 +306,37 @@
   </style>
 </head>
 <body>
+  <canvas id="fireworksCanvas"></canvas>
+  <div class="celebrate-overlay" id="celebrateOverlay" role="dialog" aria-modal="true">
+    <div class="celebrate-card">
+      <div class="celebrate-badge" id="celebrateBadge">🎉 100 題測驗完成</div>
+      <div class="celebrate-score" id="celebrateScore">100 <span>分（滿分 100 分）</span></div>
+      <div class="celebrate-title" id="celebrateTitle">阿姨太強啦！</div>
+      <p class="celebrate-msg" id="celebrateMsg"></p>
+      <div class="celebrate-actions">
+        <button type="button" class="btn btn-celebrate" id="replayFwBtn">🎆 再放一次煙花</button>
+        <button type="button" class="btn" id="modalWrongBtn">只看答錯複習</button>
+        <button type="button" class="btn btn-primary" id="modalShuffleBtn">重新隨機出題</button>
+        <button type="button" class="btn" id="closeModalBtn">繼續看考卷</button>
+      </div>
+    </div>
+  </div>
   <div class="container">
     <header class="header">
       <h1>金融市場常識與職業道德｜順序隨機測驗（100 題）</h1>
+    </header>
+    <main class="quiz-list" id="quizList"></main>
+    <footer class="footer-bar">
       <div class="toolbar">
         <div class="btn-group">
           <button type="button" class="btn btn-primary" id="shuffleBtn">重新隨機出題</button>
           <button type="button" class="btn active" id="allBtn">全部題目</button>
           <button type="button" class="btn" id="wrongBtn">只看答錯</button>
+          <button type="button" class="btn btn-celebrate" id="finishBtn">🎆 結算分數放煙花</button>
         </div>
-        <div class="score-pill" id="scorePill">已作答 0 / 100 題 ｜ 答對 0 題</div>
+        <div class="score-pill" id="scorePill">已作答 0 / 100 題 ｜ 目前得分 0 分</div>
       </div>
-    </header>
-    <main class="quiz-list" id="quizList"></main>
+    </footer>
   </div>
 
   <script>
@@ -233,12 +344,26 @@
     let order = [];
     let answers = {};
     let showWrongOnly = false;
+    let hasCelebrated = false;
+    let fwAnimId = null;
 
     const quizList = document.getElementById('quizList');
     const scorePill = document.getElementById('scorePill');
     const shuffleBtn = document.getElementById('shuffleBtn');
     const allBtn = document.getElementById('allBtn');
     const wrongBtn = document.getElementById('wrongBtn');
+    const finishBtn = document.getElementById('finishBtn');
+    const celebrateOverlay = document.getElementById('celebrateOverlay');
+    const celebrateBadge = document.getElementById('celebrateBadge');
+    const celebrateScore = document.getElementById('celebrateScore');
+    const celebrateTitle = document.getElementById('celebrateTitle');
+    const celebrateMsg = document.getElementById('celebrateMsg');
+    const replayFwBtn = document.getElementById('replayFwBtn');
+    const modalWrongBtn = document.getElementById('modalWrongBtn');
+    const modalShuffleBtn = document.getElementById('modalShuffleBtn');
+    const closeModalBtn = document.getElementById('closeModalBtn');
+    const fwCanvas = document.getElementById('fireworksCanvas');
+    const fwCtx = fwCanvas.getContext('2d');
 
     function escapeHtml(str) {
       return str
@@ -257,6 +382,113 @@
       return esc;
     }
 
+    function launchFireworks(durationMs) {
+      if (fwAnimId) cancelAnimationFrame(fwAnimId);
+      fwCanvas.width = window.innerWidth;
+      fwCanvas.height = window.innerHeight;
+      fwCanvas.style.display = 'block';
+      const colors = ['#f59e0b', '#ef4444', '#10b981', '#3b82f6', '#ec4899', '#8b5cf6', '#fde047'];
+      const particles = [];
+      const startTime = performance.now();
+      let lastBurst = 0;
+
+      function spawnBurst() {
+        const cx = fwCanvas.width * (0.15 + Math.random() * 0.7);
+        const cy = fwCanvas.height * (0.15 + Math.random() * 0.45);
+        const color = colors[Math.floor(Math.random() * colors.length)];
+        const count = 46;
+        for (let i = 0; i < count; i++) {
+          const angle = (Math.PI * 2 * i) / count + (Math.random() - 0.5) * 0.2;
+          const speed = 2.2 + Math.random() * 5.2;
+          particles.push({
+            x: cx,
+            y: cy,
+            vx: Math.cos(angle) * speed,
+            vy: Math.sin(angle) * speed,
+            alpha: 1,
+            decay: 0.012 + Math.random() * 0.012,
+            color,
+            size: 2.5 + Math.random() * 2.5
+          });
+        }
+      }
+
+      spawnBurst();
+      spawnBurst();
+
+      function tick(now) {
+        fwCtx.clearRect(0, 0, fwCanvas.width, fwCanvas.height);
+        if (now - startTime < durationMs && now - lastBurst > 360) {
+          spawnBurst();
+          lastBurst = now;
+        }
+        for (let i = particles.length - 1; i >= 0; i--) {
+          const pt = particles[i];
+          pt.x += pt.vx;
+          pt.y += pt.vy;
+          pt.vy += 0.06;
+          pt.vx *= 0.985;
+          pt.alpha -= pt.decay;
+          if (pt.alpha <= 0) {
+            particles.splice(i, 1);
+            continue;
+          }
+          fwCtx.globalAlpha = pt.alpha;
+          fwCtx.fillStyle = pt.color;
+          fwCtx.beginPath();
+          fwCtx.arc(pt.x, pt.y, pt.size, 0, Math.PI * 2);
+          fwCtx.fill();
+        }
+        fwCtx.globalAlpha = 1;
+        if (now - startTime < durationMs || particles.length > 0) {
+          fwAnimId = requestAnimationFrame(tick);
+        } else {
+          fwCanvas.style.display = 'none';
+          fwAnimId = null;
+        }
+      }
+      fwAnimId = requestAnimationFrame(tick);
+    }
+
+    function showCelebration(answered, correct) {
+      const score = correct;
+      celebrateScore.innerHTML = `${score} <span>分（滿分 100 分）</span>`;
+      if (answered < 100) {
+        celebrateBadge.textContent = `📝 目前已作答 ${answered} / 100 題`;
+      } else {
+        celebrateBadge.textContent = '🎉 100 題全部作答完成！';
+      }
+
+      if (score === 100) {
+        celebrateScore.style.color = '#15803d';
+        celebrateTitle.textContent = '🏆 100 分滿分考霸！阿姨妳太神啦！';
+        celebrateMsg.textContent = '100 題全部答對、一題都沒漏！這實力去考場根本直接秒殺過關，全家都要為妳放鞭炮慶祝啦！';
+      } else if (score >= 90) {
+        celebrateScore.style.color = '#15803d';
+        celebrateTitle.textContent = '🌟 超高分神準過關！阿姨實在太強了！';
+        celebrateMsg.textContent = `隨便寫都拿下 ${score} 分，證照已經穩穩拿在手裡了！妳這麼認真準備真的超值得驕傲！`;
+      } else if (score >= 70) {
+        celebrateScore.style.color = '#15803d';
+        celebrateTitle.textContent = '🎉 恭喜高分及格達標！穩穩過關沒問題！';
+        celebrateMsg.textContent = `金融證照 70 分就及格，妳已經拿到 ${score} 分超越門檻囉！超棒的，再把錯題瞄一下就更無敵了！`;
+      } else if (answered > 0) {
+        celebrateScore.style.color = '#b45309';
+        celebrateTitle.textContent = '💐 辛苦了！寫完考卷就是最大的勝利！';
+        celebrateMsg.textContent = `阿姨超有毅力！已經拿下 ${score} 分了，現在點「只看答錯複習」把不熟的看一遍，下次一定馬上衝破 70 分大關！`;
+      } else {
+        celebrateScore.style.color = '#1e3a5f';
+        celebrateTitle.textContent = '✨ 準備好開考囉！';
+        celebrateMsg.textContent = '點選每題的 (A)(B)(C)(D) 就能一題一分累積成績，全部寫完會有專屬煙花慶祝喔！';
+      }
+
+      celebrateOverlay.classList.add('show');
+      if (answered > 0) launchFireworks(4200);
+    }
+
+    function closeCelebration() {
+      celebrateOverlay.classList.remove('show');
+    }
+
     function shuffleQuestions() {
       order = RAW_QUESTIONS.map((_, idx) => idx);
       for (let i = order.length - 1; i > 0; i--) {
@@ -264,10 +496,13 @@
         [order[i], order[j]] = [order[j], order[i]];
       }
       answers = {};
+      hasCelebrated = false;
+      closeCelebration();
       showWrongOnly = false;
       allBtn.classList.add('active');
       wrongBtn.classList.remove('active');
       render();
+      window.scrollTo({ top: 0, behavior: 'smooth' });
     }
 
     function updateScore() {
@@ -279,7 +514,8 @@
           if (answers[q.id] === q.ans) correct++;
         }
       }
-      scorePill.textContent = `已作答 ${answered} / 100 題 ｜ 答對 ${correct} 題`;
+      scorePill.textContent = `已作答 ${answered} / 100 題 ｜ 目前得分 ${correct} 分`;
+      return { answered, correct };
     }
 
     function render() {
@@ -349,6 +585,11 @@
       const opt = btn.dataset.opt;
       answers[qid] = opt;
       render();
+      const stats = updateScore();
+      if (stats.answered === 100 && !hasCelebrated) {
+        hasCelebrated = true;
+        setTimeout(() => showCelebration(stats.answered, stats.correct), 250);
+      }
     });
 
     shuffleBtn.addEventListener('click', shuffleQuestions);
@@ -358,6 +599,7 @@
       allBtn.classList.add('active');
       wrongBtn.classList.remove('active');
       render();
+      window.scrollTo({ top: 0, behavior: 'smooth' });
     });
 
     wrongBtn.addEventListener('click', () => {
@@ -365,6 +607,27 @@
       wrongBtn.classList.add('active');
       allBtn.classList.remove('active');
       render();
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    });
+
+    finishBtn.addEventListener('click', () => {
+      const stats = updateScore();
+      showCelebration(stats.answered, stats.correct);
+    });
+
+    replayFwBtn.addEventListener('click', () => launchFireworks(4200));
+    closeModalBtn.addEventListener('click', closeCelebration);
+    modalShuffleBtn.addEventListener('click', shuffleQuestions);
+    modalWrongBtn.addEventListener('click', () => {
+      closeCelebration();
+      showWrongOnly = true;
+      wrongBtn.classList.add('active');
+      allBtn.classList.remove('active');
+      render();
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    });
+    celebrateOverlay.addEventListener('click', (e) => {
+      if (e.target === celebrateOverlay) closeCelebration();
     });
 
     shuffleQuestions();
