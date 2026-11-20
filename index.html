@@ -9,46 +9,48 @@
       --primary: #1e3a5f;
       --primary-light: #eef4fb;
       --accent: #991b1b;
-      --bg: #f4f6f9;
-      --card: #ffffff;
+      --bg: #eef2f6;
+      --paper: #ffffff;
       --text: #111827;
       --muted: #4b5563;
       --border: #d1d5db;
-      --ok-bg: #dcfce7;
-      --ok-bd: #16a34a;
+      --ok-bg: #bbf7d0;
+      --ok-bd: #15803d;
       --ok-ink: #14532d;
-      --err-bg: #fee2e2;
-      --err-bd: #dc2626;
+      --err-bg: #fecaca;
+      --err-bd: #b91c1c;
       --err-ink: #7f1d1d;
     }
     * { box-sizing: border-box; }
     body {
       margin: 0;
-      padding: 0;
+      padding: 16px;
       background: var(--bg);
       color: var(--text);
-      font-family: 'Noto Sans TC', 'PingFang TC', 'Microsoft JhengHei', 'Inter', sans-serif;
+      font-family: 'Noto Sans TC', 'PingFang TC', 'Microsoft JhengHei', sans-serif;
       line-height: 1.55;
     }
     .container {
-      max-width: 1040px;
+      max-width: 1020px;
       margin: 0 auto;
-      padding: 18px 16px 64px;
+      background: var(--paper);
+      border: 1px solid #cbd5e1;
+      border-radius: 8px;
+      padding: 26px 32px 48px;
+      box-shadow: 0 4px 18px rgba(0, 0, 0, 0.06);
     }
     .header {
-      background: var(--card);
-      border: 1px solid var(--border);
-      border-top: 5px solid var(--primary);
-      border-radius: 14px;
-      padding: 18px 22px;
-      margin-bottom: 16px;
-      box-shadow: 0 3px 12px rgba(0, 0, 0, 0.05);
+      border-bottom: 3px double #1e3a5f;
+      padding-bottom: 14px;
+      margin-bottom: 18px;
     }
     .header h1 {
       margin: 0 0 10px;
-      font-size: clamp(1.35rem, 3vw, 1.85rem);
+      font-size: clamp(1.35rem, 2.8vw, 1.85rem);
       font-weight: 900;
       color: var(--primary);
+      text-align: center;
+      letter-spacing: 0.03em;
     }
     .toolbar {
       display: flex;
@@ -70,8 +72,8 @@
       font-family: inherit;
       font-size: 1rem;
       font-weight: 700;
-      padding: 8px 16px;
-      border-radius: 10px;
+      padding: 7px 14px;
+      border-radius: 6px;
       cursor: pointer;
       transition: all 0.15s ease;
     }
@@ -82,45 +84,52 @@
     }
     .btn-primary:hover { background: #162c49; }
     .score-pill {
-      background: var(--primary-light);
+      background: #f8fafc;
       color: var(--primary);
-      border: 1px solid #bfdbfe;
+      border: 1px solid #cbd5e1;
       font-weight: 800;
       font-size: 1.05rem;
-      padding: 7px 14px;
-      border-radius: 999px;
+      padding: 6px 14px;
+      border-radius: 6px;
     }
     .quiz-list {
       display: flex;
       flex-direction: column;
-      gap: 12px;
     }
     .q-card {
-      background: var(--card);
-      border: 1px solid var(--border);
-      border-radius: 14px;
-      padding: 16px 20px;
-      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+      border-bottom: 1.5px dashed #d1d5db;
+      padding: 14px 4px;
+    }
+    .q-card:last-child {
+      border-bottom: none;
     }
     .q-line {
       font-size: 1.25rem;
       font-weight: 700;
       color: #111827;
-      margin-bottom: 12px;
+      margin-bottom: 8px;
       line-height: 1.5;
     }
     .q-blank {
       display: inline-block;
-      min-width: 44px;
+      min-width: 34px;
       text-align: center;
-      border-bottom: 2.5px solid var(--primary);
       color: var(--primary);
       font-weight: 900;
-      margin: 0 4px;
+      margin: 0 2px;
       padding: 0 4px;
+      border-radius: 4px;
     }
-    .q-blank.ok { color: var(--ok-ink); border-color: var(--ok-bd); background: var(--ok-bg); border-radius: 4px; }
-    .q-blank.err { color: var(--err-ink); border-color: var(--err-bd); background: var(--err-bg); border-radius: 4px; }
+    .q-blank.ok {
+      color: var(--ok-ink);
+      background: var(--ok-bg);
+      border: 1.5px solid var(--ok-bd);
+    }
+    .q-blank.err {
+      color: var(--err-ink);
+      background: var(--err-bg);
+      border: 1.5px solid var(--err-bd);
+    }
     .hl {
       background-color: #fff176;
       color: #000000;
@@ -129,61 +138,77 @@
       border-radius: 3px;
       box-shadow: inset 0 -2px 0 #fdd835;
     }
-    .opts-grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
-      gap: 8px;
+    .opts-line {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px 14px;
+      padding-left: 18px;
     }
     .opt-btn {
       appearance: none;
       text-align: left;
-      background: #f9fafb;
-      border: 1.5px solid var(--border);
-      border-radius: 10px;
-      padding: 10px 14px;
+      background: transparent;
+      border: 1.5px solid transparent;
+      border-radius: 6px;
+      padding: 4px 10px;
       font-family: inherit;
-      font-size: 1.12rem;
+      font-size: 1.15rem;
       font-weight: 600;
-      color: var(--text);
+      color: #1f2937;
       cursor: pointer;
       line-height: 1.45;
       transition: all 0.12s ease;
     }
     .opt-btn:hover {
-      border-color: var(--primary);
       background: var(--primary-light);
+      border-color: #93c5fd;
     }
     .opt-btn.correct {
       background: var(--ok-bg);
-      border-color: var(--ok-bd);
+      border: 2px solid var(--ok-bd);
       color: var(--ok-ink);
-      font-weight: 800;
+      font-weight: 900;
     }
     .opt-btn.wrong {
       background: var(--err-bg);
-      border-color: var(--err-bd);
+      border: 2px solid var(--err-bd);
       color: var(--err-ink);
+      font-weight: 700;
     }
     .feedback-row {
-      margin-top: 10px;
+      margin-top: 8px;
+      margin-left: 18px;
       font-size: 1.05rem;
-      font-weight: 700;
-      display: flex;
+      font-weight: 800;
+      display: inline-flex;
       flex-wrap: wrap;
       gap: 10px;
       align-items: center;
+      padding: 4px 12px;
+      border-radius: 6px;
     }
-    .fb-ok { color: var(--ok-ink); }
-    .fb-err { color: var(--err-ink); }
+    .feedback-row.is-ok {
+      background: #dcfce7;
+      border-left: 5px solid var(--ok-bd);
+      color: var(--ok-ink);
+    }
+    .feedback-row.is-err {
+      background: #fee2e2;
+      border-left: 5px solid var(--err-bd);
+      color: var(--err-ink);
+    }
     .hook-tag { color: var(--accent); font-weight: 800; }
     .empty-msg {
-      background: var(--card);
-      border: 1px dashed var(--border);
-      border-radius: 14px;
       padding: 36px 20px;
       text-align: center;
       font-size: 1.15rem;
       color: var(--muted);
+    }
+    @media (max-width: 650px) {
+      body { padding: 8px; }
+      .container { padding: 16px 14px 36px; }
+      .opts-line { padding-left: 4px; }
+      .feedback-row { margin-left: 4px; }
     }
   </style>
 </head>
@@ -282,29 +307,35 @@
         const qHtml = highlightKeywords(q.q, q.kws);
         const optsHtml = ['A', 'B', 'C', 'D'].map((letter) => {
           let cls = 'opt-btn';
+          let prefix = '';
           if (picked) {
-            if (letter === q.ans) cls += ' correct';
-            else if (letter === picked) cls += ' wrong';
+            if (letter === q.ans) {
+              cls += ' correct';
+              prefix = '✓ ';
+            } else if (letter === picked) {
+              cls += ' wrong';
+              prefix = '✗ ';
+            }
           }
-          return `<button type="button" class="${cls}" data-qid="${q.id}" data-opt="${letter}">(${letter}) ${escapeHtml(q.opts[letter])}</button>`;
+          return `<button type="button" class="${cls}" data-qid="${q.id}" data-opt="${letter}">${prefix}(${letter})${escapeHtml(q.opts[letter])}</button>`;
         }).join('');
 
         let fbHtml = '';
         if (picked) {
+          const fbCls = isCorrect ? 'feedback-row is-ok' : 'feedback-row is-err';
           const msg = isCorrect
-            ? `<span class="fb-ok">✓ 答對了！正確答案：(${q.ans})</span>`
-            : `<span class="fb-err">✗ 答錯囉，正確答案是：(${q.ans})</span>`;
+            ? `<span>✓ 答對了！（${q.ans}）</span>`
+            : `<span>✗ 答錯囉，正確答案是（${q.ans}）</span>`;
           const hook = q.hook ? `<span class="hook-tag">${escapeHtml(q.hook)}</span>` : '';
-          fbHtml = `<div class="feedback-row">${msg}${hook}</div>`;
+          fbHtml = `<div class="${fbCls}">${msg}${hook}</div>`;
         }
 
         card.innerHTML = `
           <div class="q-line">
-            <span>第 ${displayIdx + 1} 題</span>
-            <span class="${blankClass}">${picked || '？'}</span>
+            <span>（<span class="${blankClass}">${picked ? picked : '&nbsp;&nbsp;'}</span>）${displayIdx + 1}.</span>
             <span>${qHtml}</span>
           </div>
-          <div class="opts-grid">${optsHtml}</div>
+          <div class="opts-line">${optsHtml}</div>
           ${fbHtml}
         `;
         quizList.appendChild(card);
